@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogos 3D | Mundo Gamer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:Arial,Helvetica,sans-serif;background:#070707;color:#fff;line-height:1.6}
+header{position:sticky;top:0;z-index:1000;background:rgba(7,7,7,.96);border-bottom:1px solid #242424;backdrop-filter:blur(10px)}
+nav{max-width:1200px;margin:auto;min-height:72px;padding:12px 22px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:25px;font-weight:900;letter-spacing:1px}.logo span{color:#00e5ff}
+nav ul{list-style:none;display:flex;gap:22px}nav a{color:#ddd;text-decoration:none;font-weight:bold}nav a:hover{color:#00e5ff}
+.hero{min-height:520px;display:flex;align-items:center;background:linear-gradient(90deg,rgba(0,0,0,.96),rgba(0,0,0,.72),rgba(0,0,0,.25)),url("https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/header.jpg") center/cover}
+.hero-content{max-width:1200px;width:100%;margin:auto;padding:80px 22px}
+.tag{display:inline-block;padding:7px 13px;border:1px solid #00e5ff;border-radius:30px;color:#00e5ff;font-weight:bold;margin-bottom:18px}
+h1{font-size:clamp(42px,7vw,78px);line-height:1.02;max-width:760px}.hero p{max-width:650px;color:#d5d5d5;font-size:18px;margin:20px 0 28px}
+.btn{display:inline-block;background:#00e5ff;color:#001014;padding:13px 22px;border-radius:8px;text-decoration:none;font-weight:900;border:0;cursor:pointer}
+.btn:hover{transform:translateY(-2px)}
+section{max-width:1200px;margin:auto;padding:70px 22px}.title{text-align:center;margin-bottom:35px}.title h2{font-size:38px}.title p{color:#aaa}
+.search{display:flex;max-width:700px;margin:0 auto 35px;background:#111;border:1px solid #292929;border-radius:10px;overflow:hidden}
+.search input{flex:1;padding:16px;background:transparent;border:0;outline:0;color:white;font-size:16px}.search button{border:0;background:#00e5ff;padding:0 20px;font-weight:bold;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.card{background:#111;border:1px solid #252525;border-radius:14px;overflow:hidden;transition:.25s;cursor:pointer}
+.card:hover{transform:translateY(-7px);border-color:#00e5ff;box-shadow:0 15px 35px rgba(0,229,255,.09)}
+.card img{width:100%;height:190px;object-fit:cover;display:block}.card-body{padding:20px}.card h3{font-size:23px;margin-bottom:8px}.card p{color:#aaa;font-size:14px;margin-bottom:15px}
+.meta{display:flex;justify-content:space-between;align-items:center}.genre{color:#00e5ff;font-size:13px;font-weight:bold}.rating{background:#202020;padding:5px 9px;border-radius:6px}
+.click-info{margin-top:12px;color:#00e5ff;font-size:13px;font-weight:bold}
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.box{background:#111;border:1px solid #252525;padding:25px;border-radius:14px}.box h3{color:#00e5ff;margin-bottom:8px}.box p{color:#aaa}
+footer{border-top:1px solid #222;text-align:center;color:#888;padding:35px 20px;background:#050505}.creator{color:#00e5ff;font-weight:bold}
+.no-results{text-align:center;color:#aaa;display:none;padding:30px}
+
+/* Janela de informações */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:20px;z-index:2000}
+.modal.show{display:flex}
+.modal-box{width:min(850px,100%);max-height:90%;overflow:auto;background:#101010;border:1px solid #333;border-radius:16px;box-shadow:0 20px 60px #000}
+.modal-top{position:relative}.modal-top img{width:100%;height:250px;object-fit:cover;border-radius:16px 16px 0 0}
+.close{position:absolute;right:14px;top:14px;width:44px;height:44px;border:0;border-radius:50%;background:#000;color:#fff;font-size:25px;cursor:pointer}
+.modal-content{padding:28px}.modal-content h2{font-size:34px;margin-bottom:8px}.modal-content .subtitle{color:#00e5ff;font-weight:bold;margin-bottom:20px}
+.details{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0}
+.detail{background:#181818;border:1px solid #292929;border-radius:10px;padding:14px}.detail strong{display:block;color:#00e5ff;font-size:13px;margin-bottom:3px}.detail span{color:#ddd}
+.modal-content h3{margin:22px 0 8px;color:#00e5ff}.modal-content p{color:#bbb}
+@media(max-width:850px){nav ul{display:none}.grid,.info{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid,.info,.details{grid-template-columns:1fr}.hero{min-height:470px}.hero-content{padding-top:55px}h1{font-size:45px}.modal-top img{height:180px}}
+
+/* Tela de entrada / logo animada */
+#introScreen{
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  background:#030303;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  transition:opacity .8s ease, visibility .8s ease;
+}
+#introScreen.hide{opacity:0;visibility:hidden;pointer-events:none}
+.intro-bg{
+  position:absolute;
+  width:420px;height:420px;
+  border-radius:50%;
+  border:1px solid rgba(0,229,255,.18);
+  box-shadow:0 0 80px rgba(0,229,255,.08),inset 0 0 80px rgba(0,229,255,.04);
+  animation:spinRing 7s linear infinite;
+}
+.intro-bg::before,.intro-bg::after{
+  content:"";
+  position:absolute;
+  inset:35px;
+  border:1px dashed rgba(0,229,255,.18);
+  border-radius:50%;
+}
+.intro-bg::after{inset:80px;border-color:rgba(255,255,255,.1);animation:spinRingReverse 5s linear infinite}
+.intro-content{position:relative;text-align:center;z-index:2}
+.intro-logo{
+  font-size:clamp(48px,10vw,90px);
+  font-weight:1000;
+  letter-spacing:6px;
+  opacity:0;
+  transform:scale(.65);
+  animation:logoEnter 1.1s cubic-bezier(.2,.8,.2,1) .2s forwards;
+}
+.intro-logo span{color:#00e5ff}
+.intro-line{
+  width:0;height:2px;background:#00e5ff;
+  margin:16px auto 12px;
+  box-shadow:0 0 15px rgba(0,229,255,.7);
+  animation:lineGrow 1s ease 1s forwards;
+}
+.intro-sub{
+  color:#aaa;font-size:13px;letter-spacing:4px;
+  opacity:0;animation:fadeUp .8s ease 1.15s forwards;
+}
+.intro-loader{
+  width:210px;height:3px;background:#1b1b1b;border-radius:5px;
+  margin:28px auto 0;overflow:hidden;
+}
+.intro-loader span{
+  display:block;width:0;height:100%;background:#00e5ff;
+  animation:loadBar 2.1s ease-in-out .5s forwards;
+}
+@keyframes logoEnter{to{opacity:1;transform:scale(1)}}
+@keyframes lineGrow{to{width:190px}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes loadBar{0%{width:0}45%{width:65%}100%{width:100%}}
+@keyframes spinRing{to{transform:rotate(360deg)}}
+@keyframes spinRingReverse{to{transform:rotate(-360deg)}}
+@media(prefers-reduced-motion:reduce){
+  #introScreen,.intro-logo,.intro-line,.intro-sub,.intro-loader span,.intro-bg,.intro-bg::after{animation:none!important}
+  .intro-logo{opacity:1;transform:none}.intro-line{width:190px}.intro-sub{opacity:1}.intro-loader span{width:100%}
+}
+
+</style>
+</head>
+<body>
+
+<div id="introScreen" aria-label="Carregando Jogos 3D">
+  <div class="intro-bg"></div>
+  <div class="intro-content">
+    <div class="intro-logo">JOGOS<span>3D</span></div>
+    <div class="intro-line"></div>
+    <div class="intro-sub">ENTRANDO NO MUNDO GAMER</div>
+    <div class="intro-loader"><span></span></div>
+  </div>
+</div>
+
+
+<header>
+<nav>
+<div class="logo">JOGOS<span>3D</span></div>
+<ul>
+<li><a href="#inicio">Início</a></li><li><a href="#jogos">Jogos</a></li><li><a href="#sobre">Sobre</a></li><li><a href="#contato">Criador</a></li>
+</ul>
+</nav>
+</header>
+
+<main>
+<section class="hero" id="inicio">
+<div class="hero-content">
+<span class="tag">MUNDO DOS JOGOS 3D</span>
+<h1>Explore o universo dos jogos em 3D.</h1>
+<p>Descubra jogos com mundos gigantes, gráficos impressionantes, personagens marcantes e experiências imersivas.</p>
+<a class="btn" href="#jogos">Ver jogos</a>
+</div>
+</section>
+
+<section id="jogos">
+<div class="title"><h2>Jogos em destaque</h2><p>Clique em qualquer jogo para ver várias informações.</p></div>
+<div class="search">
+<input id="searchInput" type="text" placeholder="Pesquisar jogo...">
+<button type="button" id="searchBtn">Buscar</button>
+</div>
+
+<div class="grid" id="gameGrid">
+
+<article class="card" data-name="Grand Theft Auto V GTA 5" data-game="gta">
+<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/271590/header.jpg" alt="Grand Theft Auto V">
+<div class="card-body"><h3>Grand Theft Auto V</h3><p>Um enorme mundo aberto com exploração, missões e muita ação.</p><div class="meta"><span class="genre">Mundo aberto</span><span class="rating">3D</span></div><div class="click-info">▶ Clique para ver informações</div></div>
+</article>
+
+<article class="card" data-name="Cyberpunk 2077" data-game="cyberpunk">
+<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+<div class="card-body"><h3>Cyberpunk 2077</h3><p>Uma cidade futurista cheia de tecnologia, histórias e exploração.</p><div class="meta"><span class="genre">RPG</span><span class="rating">3D</span></div><div class="click-info">▶ Clique para ver informações</div></div>
+</article>
+
+<article class="card" data-name="Red Dead Redemption 2 RDR2" data-game="rdr2">
+<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/header.jpg" alt="Red Dead Redemption 2">
+<div class="card-body"><h3>Red Dead Redemption 2</h3><p>Uma aventura em mundo aberto ambientada no Velho Oeste.</p><div class="meta"><span class="genre">Aventura</span><span class="rating">3D</span></div><div class="click-info">▶ Clique para ver informações</div></div>
+</article>
+
+<article class="card" data-name="The Witcher 3" data-game="witcher">
+<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/292030/header.jpg" alt="The Witcher 3">
+<div class="card-body"><h3>The Witcher 3</h3><p>Explore um mundo de fantasia com monstros, missões e aventuras.</p><div class="meta"><span class="genre">RPG</span><span class="rating">3D</span></div><div class="click-info">▶ Clique para ver informações</div></div>
+</article>
+
+<article class="card" data-name="Elden Ring" data-game="elden">
+<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg" alt="Elden Ring">
+<div class="card-body"><h3>Elden Ring</h3><p>Explore terras misteriosas, enfrente inimigos e descubra segredos.</p><div class="meta"><span class="genre">Ação RPG</span><span class="rating">3D</span></div><div class="click-info">▶ Clique para ver informações</div></div>
+</article>
+
+<article class="card" data-name="No Mans Sky" data-game="nomanssky">
+<img src="https://cdn.cloudflare.steamstatic.com/steam/apps/275850/header.jpg" alt="No Man's Sky">
+<div class="card-body"><h3>No Man's Sky</h3><p>Viaje pelo espaço e explore planetas em um universo enorme.</p><div class="meta"><span class="genre">Exploração</span><span class="rating">3D</span></div><div class="click-info">▶ Clique para ver informações</div></div>
+</article>
+
+</div>
+<div class="no-results" id="noResults">Nenhum jogo encontrado.</div>
+</section>
+
+<section id="sobre">
+<div class="title"><h2>O que são jogos 3D?</h2><p>Entenda rapidamente.</p></div>
+<div class="info">
+<div class="box"><h3>🌎 Mundos</h3><p>Jogos 3D criam ambientes com profundidade, permitindo explorar cenários em diferentes direções.</p></div>
+<div class="box"><h3>🎮 Imersão</h3><p>Câmera, iluminação, sons e movimentação ajudam a criar uma experiência mais envolvente.</p></div>
+<div class="box"><h3>💻 Tecnologia</h3><p>Engines como Unreal Engine e Unity são usadas para desenvolver muitos jogos tridimensionais.</p></div>
+</div>
+</section>
+</main>
+
+<footer id="contato">
+<p>Site sobre Jogos 3D</p><p>Criador: <span class="creator">Breno</span></p><p>© 2026 - Projeto escolar / pessoal</p>
+</footer>
+
+<div class="modal" id="gameModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+<div class="modal-box">
+<div class="modal-top"><img id="modalImage" src="" alt=""><button class="close" type="button" id="closeModal" aria-label="Fechar">×</button></div>
+<div class="modal-content">
+<h2 id="modalTitle"></h2><div class="subtitle" id="modalGenre"></div>
+<div class="details" id="modalDetails"></div>
+<h3>📖 Sobre o jogo</h3><p id="modalDescription"></p>
+<h3>⭐ Destaques</h3><p id="modalHighlights"></p>
+</div>
+</div>
+</div>
+
+<script>
+
+const introScreen = document.getElementById("introScreen");
+setTimeout(() => {
+  introScreen.classList.add("hide");
+}, 3000);
+
+const games = {
+gta:{
+title:"Grand Theft Auto V",genre:"Ação / Mundo aberto",
+image:"https://cdn.cloudflare.steamstatic.com/steam/apps/271590/header.jpg",
+details:[
+["Desenvolvedora","Rockstar North"],["Publicadora","Rockstar Games"],["Lançamento","2013"],["Plataformas","PC, PlayStation e Xbox"],["Modo","Um jogador e multiplayer"],["Cenário","Los Santos e Blaine County"]
+],
+description:"Grand Theft Auto V apresenta um grande mundo aberto inspirado no sul da Califórnia. A história acompanha três protagonistas cujas trajetórias se cruzam em diferentes situações.",
+highlights:"Mundo aberto, veículos, missões, exploração, personalização e o modo online."
+},
+cyberpunk:{
+title:"Cyberpunk 2077",genre:"RPG / Ação",
+image:"https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg",
+details:[
+["Desenvolvedora","CD Projekt Red"],["Publicadora","CD Projekt"],["Lançamento","2020"],["Plataformas","PC, PlayStation e Xbox"],["Modo","Um jogador"],["Cenário","Night City"]
+],
+description:"Cyberpunk 2077 se passa em Night City, uma metrópole futurista. O jogador controla V e pode explorar a cidade, realizar missões e desenvolver diferentes habilidades.",
+highlights:"Futuro distópico, personalização do personagem, combate, exploração e narrativa com escolhas."
+},
+rdr2:{
+title:"Red Dead Redemption 2",genre:"Ação / Aventura / Mundo aberto",
+image:"https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/header.jpg",
+details:[
+["Desenvolvedora","Rockstar Studios"],["Publicadora","Rockstar Games"],["Lançamento","2018"],["Plataformas","PC, PlayStation e Xbox"],["Modo","Um jogador e multiplayer"],["Cenário","Velho Oeste americano"]
+],
+description:"A história acompanha Arthur Morgan e a gangue Van der Linde durante uma época de mudanças no Velho Oeste. O mundo pode ser explorado a pé, a cavalo e por diferentes veículos.",
+highlights:"Mundo aberto, história, caça, pesca, cavalos, missões e exploração."
+},
+witcher:{
+title:"The Witcher 3: Wild Hunt",genre:"RPG / Aventura",
+image:"https://cdn.cloudflare.steamstatic.com/steam/apps/292030/header.jpg",
+details:[
+["Desenvolvedora","CD Projekt Red"],["Publicadora","CD Projekt"],["Lançamento","2015"],["Plataformas","PC, PlayStation, Xbox e Switch"],["Modo","Um jogador"],["Protagonista","Geralt de Rívia"]
+],
+description:"Geralt de Rívia percorre um vasto mundo de fantasia em busca de pessoas e criaturas ligadas à sua história. O jogo combina exploração, combates e missões.",
+highlights:"Fantasia, monstros, decisões, missões secundárias, exploração e evolução do personagem."
+},
+elden:{
+title:"Elden Ring",genre:"Ação / RPG",
+image:"https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg",
+details:[
+["Desenvolvedora","FromSoftware"],["Publicadora","Bandai Namco Entertainment"],["Lançamento","2022"],["Plataformas","PC, PlayStation e Xbox"],["Modo","Um jogador e multiplayer"],["Mundo","The Lands Between"]
+],
+description:"Elden Ring apresenta um grande mundo de fantasia chamado The Lands Between. O jogador explora regiões, enfrenta inimigos e chefes e desenvolve seu personagem.",
+highlights:"Exploração, combate, chefes, construção de personagem, fantasia e descoberta."
+},
+nomanssky:{
+title:"No Man's Sky",genre:"Exploração / Sobrevivência",
+image:"https://cdn.cloudflare.steamstatic.com/steam/apps/275850/header.jpg",
+details:[
+["Desenvolvedora","Hello Games"],["Publicadora","Hello Games"],["Lançamento","2016"],["Plataformas","PC, PlayStation, Xbox e outras"],["Modo","Solo e multiplayer"],["Tema","Exploração espacial"]
+],
+description:"No Man's Sky permite explorar um universo espacial com muitos planetas. O jogador pode viajar, coletar recursos, construir bases e descobrir novos lugares.",
+highlights:"Exploração espacial, planetas, construção, recursos, naves e multiplayer."
+}
+};
+
+const modal=document.getElementById("gameModal");
+const closeModal=document.getElementById("closeModal");
+const cards=document.querySelectorAll(".card");
+
+function openGame(key){
+const game=games[key];
+if(!game)return;
+document.getElementById("modalTitle").textContent=game.title;
+document.getElementById("modalGenre").textContent=game.genre;
+document.getElementById("modalImage").src=game.image;
+document.getElementById("modalImage").alt=game.title;
+document.getElementById("modalDescription").textContent=game.description;
+document.getElementById("modalHighlights").textContent=game.highlights;
+document.getElementById("modalDetails").innerHTML=game.details.map(item=>`<div class="detail"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+modal.classList.add("show");
+document.body.style.overflow="hidden";
+closeModal.focus();
+}
+
+function closeGame(){
+modal.classList.remove("show");
+document.body.style.overflow="";
+}
+
+cards.forEach(card=>card.addEventListener("click",()=>openGame(card.dataset.game)));
+closeModal.addEventListener("click",closeGame);
+modal.addEventListener("click",e=>{if(e.target===modal)closeGame()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&modal.classList.contains("show"))closeGame()});
+
+function pesquisar(){
+const termo=document.getElementById("searchInput").value.toLowerCase().trim();
+let encontrados=0;
+cards.forEach(card=>{
+const aparece=card.dataset.name.toLowerCase().includes(termo);
+card.style.display=aparece?"block":"none";
+if(aparece)encontrados++;
+});
+document.getElementById("noResults").style.display=encontrados===0?"block":"none";
+}
+document.getElementById("searchInput").addEventListener("input",pesquisar);
+document.getElementById("searchBtn").addEventListener("click",pesquisar);
+</script>
+</body>
+</html>
